@@ -11,7 +11,7 @@ export interface WasZcapStorageConfig {
 		id: string;
 	};
 	capability: {
-		"@context": string[];
+		'@context': string[];
 		allowedAction: string[];
 		controller: string;
 		expires: string;
@@ -32,7 +32,7 @@ export interface WasZcapStorageConfig {
 export class WASZcapStorage {
 	private zcapClient: any;
 	private capability: any;
-    private ready: Promise<void>;
+	private ready: Promise<void>;
 
 	constructor(config: WasZcapStorageConfig) {
 		if (!config?.appInstance?.publicKeyMultibase || !config?.appInstance?.privateKeyMultibase) {
@@ -42,22 +42,21 @@ export class WASZcapStorage {
 			throw new Error('capability (zcap) is required');
 		}
 		this.capability = config.capability;
-        this.ready = this.initClient(config.appInstance);
+		this.ready = this.initClient(config.appInstance);
 	}
 
-    private async initClient(appInstance: any) {
-        const key = await Ed25519VerificationKey2020.from(appInstance);
-        const signer = key.signer();
-        // ezcap expects invocationSigner.id
-        (signer as any).id = key.id;
-        this.zcapClient = new ZcapClient({
-            SuiteClass: Ed25519Signature2020,
-            invocationSigner: signer,
-        });
+	private async initClient(appInstance: any) {
+		const key = await Ed25519VerificationKey2020.from(appInstance);
+		const signer = key.signer();
+		// ezcap expects invocationSigner.id
+		this.zcapClient = new ZcapClient({
+			SuiteClass: Ed25519Signature2020,
+			invocationSigner: signer,
+		});
 	}
 
 	private async request(method: 'PUT' | 'GET' | 'DELETE', url: string, body?: Blob) {
-        await this.ready;
+		await this.ready;
 		return this.zcapClient.request({
 			url,
 			capability: this.capability,
@@ -84,8 +83,8 @@ export class WASZcapStorage {
 		if (res?.status === 404) return null;
 		try {
 			return await res.json();
-		} catch (_) {
-			return await res.blob();
+		} catch (err) {
+			console.error('Error reading file:', err);
 		}
 	}
 
@@ -95,7 +94,7 @@ export class WASZcapStorage {
 		return res?.ok || res?.status === 404;
 	}
 
-    // Updates can be performed by calling upload() with the same key
+	// Updates can be performed by calling upload() with the same key
 
 	private extractId(res: any): string | undefined {
 		return res?.id || res?.result?.id || res?.url;

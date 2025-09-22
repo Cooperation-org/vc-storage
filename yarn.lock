@@ -463,14 +463,15 @@
     base64url-universal "^1.1.0"
     crypto-ld "^6.0.0"
 
-"@digitalcredentials/ed25519-verification-key-2020@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@digitalcredentials/ed25519-verification-key-2020/-/ed25519-verification-key-2020-4.0.0.tgz#f532be3de0f7bf813510103a4a32685fba17baf6"
-  integrity sha512-GrfITgp1guFbExZckj2q6LOxxm08PFSScr0lBYtDRezJa6CTpA9XQ8yXSSXE3LvpEi5/2uOMFxxIfKAtL1J2ww==
+"@digitalcredentials/ed25519-verification-key-2020@^5.0.0-beta.2":
+  version "5.0.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@digitalcredentials/ed25519-verification-key-2020/-/ed25519-verification-key-2020-5.0.0-beta.2.tgz#664704955375b0fef5e1c537733ce5638dffb08b"
+  integrity sha512-G/ZScyS7bePa/Avw/NWy9ZftBXml430LCRETMZnI0Pc6kcISUzDeKlksSLtCNsgTCRa/llxtY54a5xUIbMrFnA==
   dependencies:
-    "@digitalcredentials/keypair" "^1.0.5"
-    "@noble/ed25519" "^1.7.1"
-    base-x "^4.0.0"
+    "@digitalcredentials/keypair" "^2.0.5"
+    "@digitalcredentials/ssi" "^3.0.4"
+    "@noble/ed25519" "^1.7.5"
+    base-x "^4.0.1"
 
 "@digitalcredentials/ezcap@^7.1.0":
   version "5.1.0"
@@ -522,10 +523,17 @@
     lru-cache "^6.0.0"
     rdf-canonize "^3.4.0"
 
-"@digitalcredentials/keypair@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@digitalcredentials/keypair/-/keypair-1.0.5.tgz#7d6c540beb89c2915bbf8aa189e6c025b8f23015"
-  integrity sha512-g0QvhJMTSFCoUkEvSeggwVTJa2jFkQXjf/mpTn9sePkz+5OouMEDfXUWL61juTaxK5JWPEFc0PKlolXzHaHHHQ==
+"@digitalcredentials/keypair@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@digitalcredentials/keypair/-/keypair-2.0.5.tgz#398b2123ab7d1e5bcdb74ab67559e7ad22eaeb73"
+  integrity sha512-mCjhmYUZi3sbSpr0mCxQpj6Mp/0Cgzbg7jPLUtUsowf3B6+fMIqxxJ6s2a5kQEKeVBb6qrDnQnesAnPCdpid4A==
+  dependencies:
+    "@digitalcredentials/ssi" "^3.0.4"
+
+"@digitalcredentials/ssi@^3.0.4":
+  version "3.0.5"
+  resolved "https://registry.yarnpkg.com/@digitalcredentials/ssi/-/ssi-3.0.5.tgz#a214fe4544b786bf85860851c635fc65575d108c"
+  integrity sha512-V8Xuz3yWS2+EOwsfuJkpai+rIEs7Nvvl4r7FPcJYbmumB8DWefTCvATqRTMbF2CrT4It0Izs843qHdjWuPQIkg==
 
 "@esbuild/aix-ppc64@0.24.2":
   version "0.24.2"
@@ -911,7 +919,7 @@
   resolved "https://registry.npmjs.org/@noble/ed25519/-/ed25519-1.7.3.tgz"
   integrity sha512-iR8GBkDt0Q3GyaVcIu7mSsVIqnFbkbRzGLWlvhwunacoLwt4J3swfKhfaM6rN6WY+TBGoYT1GtT1mIh2/jGbRQ==
 
-"@noble/ed25519@^1.7.1":
+"@noble/ed25519@^1.7.5":
   version "1.7.5"
   resolved "https://registry.yarnpkg.com/@noble/ed25519/-/ed25519-1.7.5.tgz#94df8bdb9fec9c4644a56007eecb57b0e9fbd0d7"
   integrity sha512-xuS0nwRMQBvSxDa7UxMb61xTiH3MxTgUfhyPUALVIe0FlOAz4sjELwyDRyUvqeEYfRSG9qNjFIycqLZppg4RSA==
@@ -1547,7 +1555,7 @@ base-64@^0.1.0:
   resolved "https://registry.yarnpkg.com/base-64/-/base-64-0.1.0.tgz#780a99c84e7d600260361511c4877613bf24f6bb"
   integrity sha512-Y5gU45svrR5tI2Vt/X9GPd3L0HNIKzGu202EjxrXMpuc2V2CiKgemAbUUsqYmZJvPtCXoUKjNZwBJzsNScUbXA==
 
-base-x@^4.0.0:
+base-x@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/base-x/-/base-x-4.0.1.tgz#817fb7b57143c501f649805cb247617ad016a885"
   integrity sha512-uAZ8x6r6S3aUM9rbHGVOIsR15U/ZSc82b3ymnCPsT45Gk1DDvhDPdIgB5MrhirZWt+5K0EEPQH985kNqZgNPFw==

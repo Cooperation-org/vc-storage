@@ -15,8 +15,8 @@ export function createStorage(kind: StorageKind, options: any): any {
 		return new GoogleDriveStorage(options.accessToken);
 	}
 	if (kind === 'wasZcap') {
-			if (!options?.appInstance || !options?.capability) throw new Error('Missing appInstance or capability for WAS Zcap');
-			return new WASZcapStorage({ appInstance: options.appInstance, capability: options.capability });
+		if (!options?.appInstance || !options?.capability) throw new Error('Missing appInstance or capability for WAS Zcap');
+		return new WASZcapStorage({ appInstance: options.appInstance, capability: options.capability });
 	}
 	throw new Error('Unsupported storage kind');
 }
