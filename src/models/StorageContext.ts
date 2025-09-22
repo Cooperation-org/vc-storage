@@ -1,5 +1,4 @@
 import { GoogleDriveStorage } from './GoogleDriveStorage.js';
-import { LCWStorage } from './WASStorage.js';
 import { WASZcapStorage } from './WASZcapStorage.js';
 
 export type StorageKind = 'googleDrive' | 'was' | 'wasZcap';
@@ -9,20 +8,15 @@ export type WASOptions = { signer: any; spaceId: string };
 export type WASZcapOptions = { appInstance: any; capability: any };
 
 export function createStorage(kind: 'googleDrive', options: GoogleDriveOptions): GoogleDriveStorage;
-export function createStorage(kind: 'was', options: WASOptions): LCWStorage;
 export function createStorage(kind: 'wasZcap', options: WASZcapOptions): WASZcapStorage;
 export function createStorage(kind: StorageKind, options: any): any {
 	if (kind === 'googleDrive') {
 		if (!options?.accessToken) throw new Error('Missing accessToken for Google Drive');
 		return new GoogleDriveStorage(options.accessToken);
 	}
-	if (kind === 'was') {
-		if (!options?.signer || !options?.spaceId) throw new Error('Missing signer or spaceId for WAS');
-		return new LCWStorage({ signer: options.signer, zcap: undefined, spaceId: options.spaceId });
+	if (kind === 'wasZcap') {
+			if (!options?.appInstance || !options?.capability) throw new Error('Missing appInstance or capability for WAS Zcap');
+			return new WASZcapStorage({ appInstance: options.appInstance, capability: options.capability });
 	}
-    if (kind === 'wasZcap') {
-        if (!options?.appInstance || !options?.capability) throw new Error('Missing appInstance or capability for WAS Zcap');
-        return new WASZcapStorage({ appInstance: options.appInstance, capability: options.capability });
-    }
 	throw new Error('Unsupported storage kind');
 }
