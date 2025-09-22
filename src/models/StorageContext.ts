@@ -1,64 +1,28 @@
-// import { GoogleDriveStorage } from './GoogleDriveStorage.js';
-// import { StorageStrategy, StorageType } from '../../types/index.js';
+import { GoogleDriveStorage } from './GoogleDriveStorage.js';
+import { LCWStorage } from './WASStorage.js';
+import { WASZcapStorage } from './WASZcapStorage.js';
 
-// class StorageContext {
-// 	public strategy: StorageStrategy;
+export type StorageKind = 'googleDrive' | 'was' | 'wasZcap';
 
-// 	constructor(strategy: StorageStrategy) {
-// 		this.strategy = strategy;
-// 	}
+export type GoogleDriveOptions = { accessToken: string };
+export type WASOptions = { signer: any; spaceId: string };
+export type WASZcapOptions = { appInstance: any; capability: any };
 
-// 	setStrategy(strategy: StorageStrategy) {
-// 		this.strategy = strategy;
-// 	}
-
-// 	async createFolder(folderName: string, parentFolderId?: string) {
-// 		return this.strategy.createFolder(folderName, parentFolderId);
-// 	}
-
-// 	async save(data: any, folderId: string) {
-// 		return this.strategy.save(data, folderId);
-// 	}
-
-// 	async retrieve(id: string) {
-// 		return this.strategy.retrieve(id);
-// 	}
-
-// 	async findFolders(id?: string) {
-// 		return this.strategy.findFolders(id);
-// 	}
-
-// 	async findLastFile(folderId: string) {
-// 		return this.strategy.findLastFile(folderId);
-// 	}
-
-// 	async getAllClaims() {
-// 		return this.strategy.getAllClaims();
-// 	}
-
-// 	async getAllSessions() {
-// 		return this.strategy.getAllSessions();
-// 	}
-
-// 	async getFileContent(fileId: string) {
-// 		return this.strategy.getFileContent(fileId);
-// 	}
-// }
-
-// class StorageFactory {
-// 	static getStorageStrategy(type: StorageType, options: any): StorageStrategy {
-// 		switch (type) {
-// 			case 'googleDrive':
-// 				const { accessToken } = options;
-// 				if (!accessToken) {
-// 					throw new Error('Missing required parameters');
-// 				}
-
-// 				return new GoogleDriveStorage(accessToken);
-// 			default:
-// 				throw new Error('Unsupported storage type');
-// 		}
-// 	}
-// }
-
-// export { StorageContext, StorageFactory };
+export function createStorage(kind: 'googleDrive', options: GoogleDriveOptions): GoogleDriveStorage;
+export function createStorage(kind: 'was', options: WASOptions): LCWStorage;
+export function createStorage(kind: 'wasZcap', options: WASZcapOptions): WASZcapStorage;
+export function createStorage(kind: StorageKind, options: any): any {
+	if (kind === 'googleDrive') {
+		if (!options?.accessToken) throw new Error('Missing accessToken for Google Drive');
+		return new GoogleDriveStorage(options.accessToken);
+	}
+	if (kind === 'was') {
+		if (!options?.signer || !options?.spaceId) throw new Error('Missing signer or spaceId for WAS');
+		return new LCWStorage({ signer: options.signer, zcap: undefined, spaceId: options.spaceId });
+	}
+    if (kind === 'wasZcap') {
+        if (!options?.appInstance || !options?.capability) throw new Error('Missing appInstance or capability for WAS Zcap');
+        return new WASZcapStorage({ appInstance: options.appInstance, capability: options.capability });
+    }
+	throw new Error('Unsupported storage kind');
+}
