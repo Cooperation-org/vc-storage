@@ -1,109 +1,80 @@
 # @cooperation/vc-storage
 
-**Version**: 1.0.35
-
-## Overview
-
-`@cooperation/vc-storage` is a TypeScript library that allows you to sign and store Verifiable Credentials (VCs) in various storage strategies. This library provides flexibility and security by allowing you to choose where your VCs are stored, whether on cloud services like Google Drive, on your local device, or in your digital wallet. Support for Dropbox and wallet storage is currently under development.
-
-## Features
-
-- **Sign and Store VCs**: Securely sign your Verifiable Credentials and store them in your preferred storage medium.
-- **Google Drive Integration**: Seamlessly store your VCs on Google Drive.
-- **Local Device Storage**: Store your VCs directly on your device.
-- **Future Integrations**:
-  - **Wallet Storage**: Integration for storing VCs directly in your digital wallet (under development).
-  - **Dropbox Storage**: Integration for storing VCs in Dropbox (under development).
+TypeScript utilities to work with storage backends used by Linked Claims: Google Drive and Wallet Aggregated Storage (WAS). Includes a simple factory to construct storage clients and helpers used by the authoring app.
 
 ## Installation
-
-You can install this package via npm:
 
 ```bash
 npm install @cooperation/vc-storage
 ```
 
-## Usage
+## Exports (selected)
 
-### Basic Example
+- GoogleDriveStorage
+- LCWStorage (WAS via @wallet.storage/fetch-client)
+- WASZcapStorage (WAS via zCap delegation)
+- createStorage(kind, options)
+- Misc models: CredentialEngine, Resume, ResumeVC, utils
 
-Here’s how you can use the `@cooperation/vc-storage` library to sign and store your VCs:
+## Storage factory
 
-```typescript
-import { saveToGoogleDrive, CredentialEngine, GoogleDriveStorage } from '@cooperation/vc-storage';
+```ts
+import { createStorage } from '@cooperation/vc-storage';
 
-const accessToken = 'your-google-drive-access-token';
-const credentialEngine = new CredentialEngine();
-const storage = new GoogleDriveStorage(accessToken);
+// Google Drive
+const drive = createStorage('googleDrive', { accessToken });
 
-async function main(useWallet = false, walletAddress = '') {
-	const formData = {
-		expirationDate: '2025-12-31T23:59:59Z',
-		fullName: 'John Doe',
-		duration: '1 year',
-		criteriaNarrative: 'This is a narrative',
-		achievementDescription: 'This is an achievement',
-		achievementName: 'Achievement Name',
-		portfolio: [
-			{ name: 'Portfolio 1', url: 'https://example.com/portfolio1' },
-			{ name: 'Portfolio 2', url: 'https://example.com/portfolio2' },
-		],
-		evidenceLink: 'https://example.com/evidence',
-		evidenceDescription: 'This is an evidence description',
-		credentialType: 'Credential Type',
-	};
-
-	let didDocument, keyPair;
-
-	// Step 1: Create DID based on the selected method
-	if (useWallet && walletAddress) {
-		({ didDocument, keyPair } = await credentialEngine.createWalletDID(walletAddress));
-	} else {
-		({ didDocument, keyPair } = await credentialEngine.createDID());
-	}
-
-	await saveToGoogleDrive(storage, { ...didDocument, keyPair }, 'DID');
-
-	const issuerDid = didDocument.id;
-
-	// Step 2: Create an Unsigned VC
-	const unsignedVC = await credentialEngine.createUnsignedVC(formData, issuerDid);
-	await saveToGoogleDrive(storage, unsignedVC, 'UnsignedVC');
-	console.log('Unsigned VC:', unsignedVC);
-
-	// Step 3: Sign the VC
-	try {
-		const signedVC = await credentialEngine.signVC(unsignedVC, keyPair);
-		await saveToGoogleDrive(storage, signedVC, 'VC');
-		console.log('Signed VC:', signedVC);
-	} catch (error) {
-		console.error('Error during VC signing:', error);
-	}
-
-	// Retrieve all stored claims
-	const claims = await storage.getAllClaims();
-	console.log('Stored Claims:', claims);
-}
-
-// Example usage:
-// 1. For Google Drive storage with standard DID creation
-main().catch(console.error);
-
-// 2. For Google Drive storage with wallet-based DID creation
-// main(true, 'your-wallet-address').catch(console.error);
+// WAS (zCap-capability, delegated access)
+const wasZ = createStorage('wasZcap', { appInstance, capability });
 ```
 
-### Available Storage Strategies
+## GoogleDriveStorage (highlights)
 
-1. **Google Drive**: Store your VCs on Google Drive.
-2. **Local Device**: Store your VCs on your local device.
-3. **Wallet Storage**: (Under Development) Store your VCs directly in your digital wallet.
-4. **Dropbox**: (Under Development) Store your VCs in Dropbox.
+```ts
+import { GoogleDriveStorage } from '@cooperation/vc-storage';
 
-## Contributing
+const drive = new GoogleDriveStorage(accessToken);
 
-Contributions are welcome! Please feel free to submit a Pull Request or open an Issue for any bugs or feature requests.
+// Upload binary (images/videos/pdfs)
+await drive.uploadBinaryFile({ file }); // -> { id }
+
+// Save JSON file to a specific folder
+await drive.saveFile({ data: { fileName: 'VC', mimeType: 'application/json', body: JSON.stringify(vc) }, folderId });
+
+// Retrieve file content
+await drive.retrieve(fileId); // -> { id, data }
+
+// Delete
+await drive.delete(fileId);
+```
+
+## WASZcapStorage (WAS, zCap delegation)
+
+Use when uploading from the browser with delegated capability (zCap).
+
+```ts
+import { WASZcapStorage } from '@cooperation/vc-storage';
+
+const was = new WASZcapStorage({ appInstance, capability });
+
+// Blob upload (images, pdfs, or JSON-as-blob)
+await was.upload({ key: file.name, file }); // -> id or url
+
+// Optional read/delete
+await was.read('key.json');
+await was.delete('old-file.txt');
+```
+
+## Choosing a backend
+
+- Use WASZcapStorage when you have a zCap capability and an appInstance Ed25519 keypair (delegated, least-privilege).
+- Use GoogleDriveStorage for Drive workflows (e.g., storing VC artifacts/files in Drive).
+
+## Notes
+
+- WAS zCap requests are signed with Ed25519Signature2020 and require a valid `invocationSigner.id`.
+- There is no implicit fallback between backends; handle errors per backend explicitly in your app.
 
 ## License
 
-This project is licensed under the ISC License.
+ISC
