@@ -473,7 +473,7 @@
     "@noble/ed25519" "^1.7.5"
     base-x "^4.0.1"
 
-"@digitalcredentials/ezcap@^7.1.0":
+"@digitalcredentials/ezcap@^5.1.0":
   version "5.1.0"
   resolved "https://registry.yarnpkg.com/@digitalcredentials/ezcap/-/ezcap-5.1.0.tgz#18f9cf9904d0d88693dc21f3c4189f5a2fada457"
   integrity sha512-maF5y2MNC9c6q0Y5fjadHIEo9xthJc5ARnr4V85wNRbTdCB/G3ZWLcugIHNBWFcbYW6Rgf52e06BED7+ODZgKw==
@@ -534,6 +534,9 @@
   version "3.0.5"
   resolved "https://registry.yarnpkg.com/@digitalcredentials/ssi/-/ssi-3.0.5.tgz#a214fe4544b786bf85860851c635fc65575d108c"
   integrity sha512-V8Xuz3yWS2+EOwsfuJkpai+rIEs7Nvvl4r7FPcJYbmumB8DWefTCvATqRTMbF2CrT4It0Izs843qHdjWuPQIkg==
+
+"@digitalcredentials/ssi@file:.yalc/@digitalcredentials/ssi":
+  version "5.0.0"
 
 "@esbuild/aix-ppc64@0.24.2":
   version "0.24.2"
@@ -3573,7 +3576,7 @@ ts-node@^10.9.2:
 
 tsc@^2.0.4:
   version "2.0.4"
-  resolved "https://registry.npmjs.org/tsc/-/tsc-2.0.4.tgz"
+  resolved "https://registry.yarnpkg.com/tsc/-/tsc-2.0.4.tgz#5f6499146abea5dca4420b451fa4f2f9345238f5"
   integrity sha512-fzoSieZI5KKJVBYGvwbVZs/J5za84f2lSTLPYf6AGiIf43tZ3GNrI1QzTLcjtyDDP4aLxd46RTZq1nQxe7+k5Q==
 
 tslib@2.4.0:

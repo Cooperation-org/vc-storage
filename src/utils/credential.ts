@@ -77,7 +77,7 @@ export const generateDIDSchema = async (keyPair: KeyPair): Promise<DidDocument> 
  * @returns {Credential} The created unsigned VC.
  * @throws Will throw an error if the VC creation fails or if issuance date exceeds expiration date.
  */
-export function generateUnsignedVC({ formData, issuerDid }: { formData: FormDataI; issuerDid: string }): Credential {
+export function generateUnsignedVC({ formData, issuerDid }: { formData: FormDataI; issuerDid: string }): VerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	if (issuanceDate > formData.expirationDate) throw new Error('issuanceDate cannot be after expirationDate');
 
@@ -94,7 +94,7 @@ export function generateUnsignedVC({ formData, issuerDid }: { formData: FormData
 				credentialType: 'https://schema.org/credentialType',
 			},
 		],
-		id: '', // Will be set after hashing
+    id: '', // Will be set after hashing
 		type: ['VerifiableCredential', 'OpenBadgeCredential'],
 		issuer: {
 			id: issuerDid,
@@ -137,7 +137,7 @@ export function generateUnsignedVC({ formData, issuerDid }: { formData: FormData
 	// Generate the hashed ID
 	unsignedCredential.id = 'urn:' + generateHashedId(unsignedCredential);
 
-	return unsignedCredential;
+  return unsignedCredential as unknown as VerifiableCredential;
 }
 /**
  * Generate an unsigned Recommendation Credential.
@@ -157,7 +157,7 @@ export function generateUnsignedRecommendation({
 	vcId: string;
 	recommendation: RecommendationFormDataI;
 	issuerDid: string;
-}): RecommendationCredential {
+}): VerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	if (issuanceDate > recommendation.expirationDate) throw new Error('issuanceDate cannot be after expirationDate');
 
@@ -194,13 +194,13 @@ export function generateUnsignedRecommendation({
 		},
 	};
 
-	return unsignedRecommendation;
+  return unsignedRecommendation as unknown as VerifiableCredential;
 }
 
 /**
  * Generate an unsigned Employment Credential.
  */
-export function generateUnsignedEmployment({ formData, issuerDid }: { formData: EmploymentFormDataI; issuerDid: string }) {
+export function generateUnsignedEmployment({ formData, issuerDid }: { formData: EmploymentFormDataI; issuerDid: string }): VerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	const unsignedCredential = {
 		'@context': ['https://www.w3.org/2018/credentials/v1', employmentCredentialContext['@context']],
@@ -223,13 +223,13 @@ export function generateUnsignedEmployment({ formData, issuerDid }: { formData: 
 		},
 	};
 	unsignedCredential.id = 'urn:' + generateHashedId(unsignedCredential);
-	return unsignedCredential;
+  return unsignedCredential as unknown as VerifiableCredential;
 }
 
 /**
  * Generate an unsigned Volunteering Credential.
  */
-export function generateUnsignedVolunteering({ formData, issuerDid }: { formData: VolunteeringFormDataI; issuerDid: string }) {
+export function generateUnsignedVolunteering({ formData, issuerDid }: { formData: VolunteeringFormDataI; issuerDid: string }): VerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	const unsignedCredential = {
 		'@context': ['https://www.w3.org/2018/credentials/v1', volunteeringCredentialContext['@context']],
@@ -253,13 +253,13 @@ export function generateUnsignedVolunteering({ formData, issuerDid }: { formData
 		},
 	};
 	unsignedCredential.id = 'urn:' + generateHashedId(unsignedCredential);
-	return unsignedCredential;
+  return unsignedCredential as unknown as VerifiableCredential;
 }
 
 /**
  * Generate an unsigned Performance Review Credential.
  */
-export function generateUnsignedPerformanceReview({ formData, issuerDid }: { formData: PerformanceReviewFormDataI; issuerDid: string }) {
+export function generateUnsignedPerformanceReview({ formData, issuerDid }: { formData: PerformanceReviewFormDataI; issuerDid: string }): VerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	const unsignedCredential = {
 		'@context': ['https://www.w3.org/2018/credentials/v1', performanceReviewCredentialContext['@context']],
@@ -291,7 +291,7 @@ export function generateUnsignedPerformanceReview({ formData, issuerDid }: { for
 		},
 	};
 	unsignedCredential.id = 'urn:' + generateHashedId(unsignedCredential);
-	return unsignedCredential;
+  return unsignedCredential as unknown as VerifiableCredential;
 }
 
 /**
