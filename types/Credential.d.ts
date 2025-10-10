@@ -110,10 +110,6 @@ export interface Proof {
 	proofValue: string;
 }
 
-// Define the structure of the Verifiable Credential (partial based on what was provided)
-export type VerifiableCredential = import('@digitalcredentials/ssi').IVerifiableCredential;
-
-
 /**
  * Employment form data
  */
