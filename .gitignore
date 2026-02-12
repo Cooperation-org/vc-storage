@@ -3,3 +3,5 @@ node_modules
 testVc.js
 testresume.js
 /dist
+/.yalc*
+yalc*

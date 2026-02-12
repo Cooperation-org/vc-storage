@@ -10,19 +10,10 @@ interface PortfolioItem {
 	url: string;
 }
 
-interface Achievement {
-	id: string;
-	type: string[];
-	criteria: {
-		narrative: string;
-	};
-	description: string;
-	name: string;
-	image?: {
-		id: string;
-		type: string;
-	};
-}
+import type { IAchievement, IOpenBadgeSubject } from '@digitalcredentials/ssi';
+
+ export type Achievement = IAchievement;
+export type OpenBadgeSubject = IOpenBadgeSubject;
 
 export interface KeyPair {
 	id: string;
@@ -118,19 +109,6 @@ export interface Proof {
 	proofPurpose: string;
 	proofValue: string;
 }
-
-// Define the structure of the Verifiable Credential (partial based on what was provided)
-export interface VerifiableCredential {
-	'@context': string[];
-	id: string;
-	type: string[];
-	issuer: { id: string; type: string[] };
-	issuanceDate: string;
-	expirationDate: string;
-	credentialSubject: { [key: string]: any };
-	proof: Proof;
-}
-
 
 /**
  * Employment form data

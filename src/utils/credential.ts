@@ -6,11 +6,11 @@ import {
 	RecommendationCredential,
 	Credential,
 	RecommendationFormDataI,
-	VerifiableCredential,
 	EmploymentFormDataI,
 	VolunteeringFormDataI,
 	PerformanceReviewFormDataI,
 } from '../../types';
+import { IVerifiableCredential } from '@digitalcredentials/ssi';
 import { v4 as uuidv4 } from 'uuid';
 import CryptoJS from 'crypto-js';
 import { employmentCredentialContext, volunteeringCredentialContext, performanceReviewCredentialContext } from './context.js';
@@ -74,10 +74,10 @@ export const generateDIDSchema = async (keyPair: KeyPair): Promise<DidDocument> 
  * @param {FormDataI} params
  * @param {string} params.FormData - The form dta to include in the VC.
  * @param {string} params.issuerDid - The DID of the issuer.
- * @returns {Credential} The created unsigned VC.
+ * @returns {IVerifiableCredential} The created unsigned VC.
  * @throws Will throw an error if the VC creation fails or if issuance date exceeds expiration date.
  */
-export function generateUnsignedVC({ formData, issuerDid }: { formData: FormDataI; issuerDid: string }): Credential {
+export function generateUnsignedVC({ formData, issuerDid }: { formData: FormDataI; issuerDid: string }): IVerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	if (issuanceDate > formData.expirationDate) throw new Error('issuanceDate cannot be after expirationDate');
 
@@ -94,7 +94,7 @@ export function generateUnsignedVC({ formData, issuerDid }: { formData: FormData
 				credentialType: 'https://schema.org/credentialType',
 			},
 		],
-		id: '', // Will be set after hashing
+    id: '', // Will be set after hashing
 		type: ['VerifiableCredential', 'OpenBadgeCredential'],
 		issuer: {
 			id: issuerDid,
@@ -137,16 +137,16 @@ export function generateUnsignedVC({ formData, issuerDid }: { formData: FormData
 	// Generate the hashed ID
 	unsignedCredential.id = 'urn:' + generateHashedId(unsignedCredential);
 
-	return unsignedCredential;
+  return unsignedCredential as IVerifiableCredential;
 }
 /**
  * Generate an unsigned Recommendation Credential.
  * Uses the hash of the VC to set the `id` for consistency.
  * @param {object} params
- * @param {VerifiableCredential} params.vc - The Verifiable Credential to base the recommendation on.
+ * @param {IVerifiableCredential} params.vc - The Verifiable Credential to base the recommendation on.
  * @param {RecommendationFormDataI} params.recommendation - The recommendation form data.
  * @param {string} params.issuerDid - The DID of the issuer.
- * @returns {RecommendationCredential} The created unsigned Recommendation Credential.
+ * @returns {IVerifiableCredential} The created unsigned Recommendation Credential.
  * @throws Will throw an error if the recommendation creation fails or if issuance date exceeds expiration date.
  */
 export function generateUnsignedRecommendation({
@@ -157,7 +157,7 @@ export function generateUnsignedRecommendation({
 	vcId: string;
 	recommendation: RecommendationFormDataI;
 	issuerDid: string;
-}): RecommendationCredential {
+}): IVerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	if (issuanceDate > recommendation.expirationDate) throw new Error('issuanceDate cannot be after expirationDate');
 
@@ -194,13 +194,13 @@ export function generateUnsignedRecommendation({
 		},
 	};
 
-	return unsignedRecommendation;
+  return unsignedRecommendation as IVerifiableCredential;
 }
 
 /**
  * Generate an unsigned Employment Credential.
  */
-export function generateUnsignedEmployment({ formData, issuerDid }: { formData: EmploymentFormDataI; issuerDid: string }) {
+export function generateUnsignedEmployment({ formData, issuerDid }: { formData: EmploymentFormDataI; issuerDid: string }): IVerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	const unsignedCredential = {
 		'@context': ['https://www.w3.org/2018/credentials/v1', employmentCredentialContext['@context']],
@@ -223,13 +223,13 @@ export function generateUnsignedEmployment({ formData, issuerDid }: { formData: 
 		},
 	};
 	unsignedCredential.id = 'urn:' + generateHashedId(unsignedCredential);
-	return unsignedCredential;
+  return unsignedCredential as IVerifiableCredential;
 }
 
 /**
  * Generate an unsigned Volunteering Credential.
  */
-export function generateUnsignedVolunteering({ formData, issuerDid }: { formData: VolunteeringFormDataI; issuerDid: string }) {
+export function generateUnsignedVolunteering({ formData, issuerDid }: { formData: VolunteeringFormDataI; issuerDid: string }): IVerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	const unsignedCredential = {
 		'@context': ['https://www.w3.org/2018/credentials/v1', volunteeringCredentialContext['@context']],
@@ -253,13 +253,13 @@ export function generateUnsignedVolunteering({ formData, issuerDid }: { formData
 		},
 	};
 	unsignedCredential.id = 'urn:' + generateHashedId(unsignedCredential);
-	return unsignedCredential;
+  return unsignedCredential as IVerifiableCredential;
 }
 
 /**
  * Generate an unsigned Performance Review Credential.
  */
-export function generateUnsignedPerformanceReview({ formData, issuerDid }: { formData: PerformanceReviewFormDataI; issuerDid: string }) {
+export function generateUnsignedPerformanceReview({ formData, issuerDid }: { formData: PerformanceReviewFormDataI; issuerDid: string }): IVerifiableCredential {
 	const issuanceDate = new Date().toISOString();
 	const unsignedCredential = {
 		'@context': ['https://www.w3.org/2018/credentials/v1', performanceReviewCredentialContext['@context']],
@@ -291,7 +291,7 @@ export function generateUnsignedPerformanceReview({ formData, issuerDid }: { for
 		},
 	};
 	unsignedCredential.id = 'urn:' + generateHashedId(unsignedCredential);
-	return unsignedCredential;
+  return unsignedCredential as IVerifiableCredential;
 }
 
 /**
@@ -299,9 +299,9 @@ export function generateUnsignedPerformanceReview({ formData, issuerDid }: { for
  * @param {Object} credential - The signed Verifiable Credential
  * @returns {Ed25519VerificationKey2020} keyPair - The generated keypair object
  */
-export async function extractKeyPairFromCredential(credential: VerifiableCredential): Promise<KeyPair> {
+export async function extractKeyPairFromCredential(credential: IVerifiableCredential): Promise<KeyPair> {
 	const verificationMethod: string = credential.proof.verificationMethod;
-	const issuer: string = credential.issuer.id;
+	const issuer: string = typeof credential.issuer === 'string' ? credential.issuer : credential.issuer.id;
 
 	// Example of extracting the public key from the DID fragment (verification method)
 	const publicKeyMultibase: string = verificationMethod.split('#')[1];
