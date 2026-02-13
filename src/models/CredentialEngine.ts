@@ -2,7 +2,6 @@ import { Ed25519VerificationKey2020 } from '@digitalbazaar/ed25519-verification-
 import { Ed25519Signature2020 } from '@digitalbazaar/ed25519-signature-2020';
 import * as dbVc from '@digitalbazaar/vc';
 import { v4 as uuidv4 } from 'uuid';
-import { driver as keyDriver } from '@digitalbazaar/did-method-key';
 
 import {
 	extractKeyPairFromCredential,
@@ -14,16 +13,16 @@ import {
 	generateUnsignedVolunteering,
 } from '../utils/credential.js';
 import { customDocumentLoader } from '../utils/digitalbazaar.js';
+import type { IVerifiableCredential } from '@digitalcredentials/ssi';
 import {
 	DidDocument,
 	KeyPair,
 	FormDataI,
 	RecommendationFormDataI,
-	VerifiableCredential,
 	EmploymentFormDataI,
 	PerformanceReviewFormDataI,
 	VolunteeringFormDataI,
-} from '../../types/credential.js';
+} from '../../types';
 import { saveToGoogleDrive } from '../utils/google.js';
 import { GoogleDriveStorage } from './GoogleDriveStorage.js';
 import { decodeSeed, getDidFromEnvSeed } from '../utils/decodedSeed.js';
@@ -63,7 +62,7 @@ export class CredentialEngine {
 		this.storage = storage;
 	}
 
-	private async getKeyPair(vc: VerifiableCredential) {
+	private async getKeyPair(vc: IVerifiableCredential) {
 		// Fetch all stored key pairs
 		const keyPairs = await this.storage.getAllFilesByType('KEYPAIRs');
 		if (!keyPairs || keyPairs.length === 0) {
@@ -108,7 +107,7 @@ export class CredentialEngine {
 		// The `signer` is already provided by the `Ed25519VerificationKey2020` instance
 		return keyPair;
 	};
-	private async verifyCreds(creds: VerifiableCredential[]): Promise<boolean> {
+	private async verifyCreds(creds: IVerifiableCredential[]): Promise<boolean> {
 		await Promise.all(
 			creds.map((cred) => {
 				const res = this.verifyCredential(cred);
@@ -116,6 +115,38 @@ export class CredentialEngine {
 			})
 		);
 		return true;
+	}
+
+	/**
+	 * For recommendations we need the *target VC DID/URI* (VC `id`) in the payload.
+	 * Callers may still pass a Google Drive file id; if so we resolve and extract the VC `id`.
+	 */
+	private async resolveTargetVcId(vcIdOrFileId: string): Promise<string> {
+		if (!vcIdOrFileId) throw new Error('Missing target VC reference');
+
+		// Already a DID/URI
+		if (vcIdOrFileId.startsWith('urn:') || vcIdOrFileId.startsWith('did:')) {
+			return vcIdOrFileId;
+		}
+
+		// Otherwise assume it's a Google Drive file id and resolve
+		const retrieved = await this.storage.retrieve(vcIdOrFileId);
+		if (!retrieved?.data) throw new Error(`Unable to resolve VC from file id: ${vcIdOrFileId}`);
+
+		const maybeEnvelope = retrieved.data as any;
+		const payload =
+			typeof maybeEnvelope?.body === 'string'
+				? JSON.parse(maybeEnvelope.body)
+				: maybeEnvelope?.body
+					? maybeEnvelope.body
+					: maybeEnvelope;
+
+		const resolvedId = payload?.id;
+		if (!resolvedId || typeof resolvedId !== 'string') {
+			throw new Error(`Resolved VC is missing an 'id' (from file id: ${vcIdOrFileId})`);
+		}
+
+		return resolvedId;
 	}
 
 	/**
@@ -192,8 +223,10 @@ export class CredentialEngine {
 				break;
 			case 'RECOMMENDATION':
 				if (!vcFileId) throw new Error('vcFileId is required for recommendation');
+				// Ensure the Recommendation VC references the target VC DID/URI (not a Drive file id)
+				const targetVcId = await this.resolveTargetVcId(vcFileId);
 				credential = generateUnsignedRecommendation({
-					vcId: vcFileId,
+					vcId: targetVcId,
 					recommendation: data as RecommendationFormDataI,
 					issuerDid: issuerId,
 				});
@@ -232,7 +265,7 @@ export class CredentialEngine {
 	 * @returns {Promise<boolean>} The verification result.
 	 * @throws Will throw an error if VC verification fails.
 	 */
-	public async verifyCredential(credential: VerifiableCredential): Promise<boolean> {
+	public async verifyCredential(credential: IVerifiableCredential): Promise<boolean> {
 		try {
 			const keyPair = await extractKeyPairFromCredential(credential);
 
@@ -260,7 +293,7 @@ export class CredentialEngine {
 	 * @param verifiableCredential
 	 * @returns
 	 */
-	public async createPresentation(verifiableCredential: VerifiableCredential[]) {
+	public async createPresentation(verifiableCredential: IVerifiableCredential[]) {
 		try {
 			const res = await this.verifyCreds(verifiableCredential);
 			if (!res) throw new Error('Some credentials failed verification');

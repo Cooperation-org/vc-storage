@@ -32,10 +32,10 @@ export const getVCWithRecommendations = async ({ vcId, storage }: { vcId: string
  * @param {object} data - The data to save.
  * @param {FileType} data.type - The type of data being saved.
  * @returns {Promise<object>} - The file object saved to Google Drive.
- * @param {string} data.vcId - Optional unique identifier for the VC to link the recommendations.
+ * @param {string} data.vcId - When `type` is RECOMMENDATION, this is the Google Drive file id of the parent VC (named "VC") to link against.
  * @throws Will throw an error if the save operation fails.
  */
-export async function saveToGoogleDrive({ storage, data, type }: SaveToGooglePropsI): Promise<any> {
+export async function saveToGoogleDrive({ storage, data, type, vcId }: SaveToGooglePropsI): Promise<any> {
 	try {
 		const fileData = {
 			fileName: type === 'VC' ? 'VC' : `${type}-${Date.now()}`,
@@ -77,6 +77,25 @@ export async function saveToGoogleDrive({ storage, data, type }: SaveToGooglePro
 
 		// Save the file in the specific subfolder
 		const file = await storage.saveFile({ data: fileData, folderId: typeFolderId });
+
+		// If this is a recommendation, optionally link it to a parent VC folder via RELATIONS
+		if (type === 'RECOMMENDATION' && vcId) {
+			const parents = await storage.getFileParents(vcId);
+			const vcFolderId = Array.isArray(parents) ? parents[0] : parents;
+			if (!vcFolderId) throw new Error('Unable to resolve parent folder for vcId');
+
+			const vcFolderFiles = await storage.findFolderFiles(vcFolderId);
+			let relationsFile = vcFolderFiles.find((f: any) => f.name === 'RELATIONS');
+			if (!relationsFile) {
+				relationsFile = await storage.createRelationsFile({ vcFolderId });
+			}
+
+			await storage.updateRelationsFile({
+				relationsFileId: relationsFile.id,
+				recommendationFileId: file.id,
+			});
+		}
+
 		return file;
 	} catch (error) {
 		console.error('Error saving to Google Drive:', error);
