@@ -173,7 +173,7 @@ export function generateUnsignedRecommendation({
 				portfolio: 'https://schema.org/portfolio',
 			},
 		],
-		id: `urn:${generateHashedId({ id: vcId })}`,
+		id: ``,
 		type: ['VerifiableCredential', 'https://schema.org/RecommendationCredential'],
 		issuer: {
 			id: issuerDid,
@@ -182,6 +182,7 @@ export function generateUnsignedRecommendation({
 		issuanceDate,
 		expirationDate: recommendation.expirationDate,
 		credentialSubject: {
+			id: vcId,
 			name: recommendation.fullName,
 			howKnow: recommendation.howKnow,
 			recommendationText: recommendation.recommendationText,
@@ -193,6 +194,9 @@ export function generateUnsignedRecommendation({
 			})),
 		},
 	};
+
+	// Generate the hashed ID
+	unsignedRecommendation.id = 'urn:' + generateHashedId(unsignedRecommendation);
 
   return unsignedRecommendation as IVerifiableCredential;
 }

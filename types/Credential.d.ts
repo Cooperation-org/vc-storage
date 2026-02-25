@@ -47,6 +47,11 @@ export interface FormDataI {
 	evidenceLink: string;
 	evidenceDescription: string;
 	credentialType: string;
+	/**
+	 * Optional DID/URI for the credential subject (holder).
+	 * If omitted, generators may default to the issuer DID.
+	 */
+	subjectId?: string;
 }
 
 export interface Credential {
@@ -60,6 +65,8 @@ export interface Credential {
 	issuanceDate: string;
 	expirationDate: string;
 	credentialSubject: {
+		/** DID/URI for the subject (holder). */
+		id?: string;
 		evidenceLink: string;
 		evidenceDescription: string;
 		portfolio: PortfolioItem[];
@@ -80,6 +87,11 @@ export interface RecommendationFormDataI {
 	howKnow: string;
 	explainAnswer: string;
 	portfolio: { name: string; url: string }[];
+	/**
+	 * Optional DID/URI for the recommendation subject (holder).
+	 * If omitted, generators may default to the issuer DID.
+	 */
+	subjectId?: string;
 }
 
 export interface RecommendationCredential {
@@ -93,6 +105,8 @@ export interface RecommendationCredential {
 	issuanceDate: string;
 	expirationDate: string;
 	credentialSubject: {
+		/** DID/URI (VC `id`) this recommendation is for (e.g., a Skill VC id). */
+		id: string;
 		name: string;
 		howKnow: string;
 		recommendationText: string;

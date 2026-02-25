@@ -6,4 +6,5 @@ export interface DataToSaveI {
 
 export type FilesType = 'KEYPAIRs' | 'MEDIAs' | 'VCs' | 'VPs' | 'RECOMMENDATIONs' | 'DIDs' | 'RELATIONS';
 
-export * from './credential';
+// Re-export credential types (case-sensitive filesystems)
+export * from './Credential';
