@@ -1,6 +1,6 @@
-import { Ed25519VerificationKey2020 } from '@digitalbazaar/ed25519-verification-key-2020';
-import { Ed25519Signature2020 } from '@digitalbazaar/ed25519-signature-2020';
-import * as dbVc from '@digitalbazaar/vc';
+import { Ed25519VerificationKey2020 } from '@digitalcredentials/ed25519-verification-key-2020';
+import { Ed25519Signature2020 } from '@digitalcredentials/ed25519-signature-2020';
+import * as dbVc from '@digitalcredentials/vc';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -9,10 +9,11 @@ import {
 	generateUnsignedEmployment,
 	generateUnsignedPerformanceReview,
 	generateUnsignedRecommendation,
+	generateUnsignedSkillClaim,
 	generateUnsignedVC,
 	generateUnsignedVolunteering,
 } from '../utils/credential.js';
-import { customDocumentLoader } from '../utils/digitalbazaar.js';
+import { customDocumentLoader } from '../utils/customDocumentLoader.js';
 import type { IVerifiableCredential } from '@digitalcredentials/ssi';
 import {
 	DidDocument,
@@ -22,10 +23,10 @@ import {
 	EmploymentFormDataI,
 	PerformanceReviewFormDataI,
 	VolunteeringFormDataI,
+	SkillClaimFormDataI,
 } from '../../types';
 import { saveToGoogleDrive } from '../utils/google.js';
 import { GoogleDriveStorage } from './GoogleDriveStorage.js';
-import { decodeSeed, getDidFromEnvSeed } from '../utils/decodedSeed.js';
 
 interface SignPropsI {
 	data: FormDataI | RecommendationFormDataI | EmploymentFormDataI | VolunteeringFormDataI | PerformanceReviewFormDataI;
@@ -260,6 +261,19 @@ export class CredentialEngine {
 	}
 
 	/**
+	 * Sign a SkillClaimCredential using the HR Context data model.
+	 * @param {SkillClaimFormDataI} data - The skill claim form data.
+	 * @param {KeyPair} keyPair - The key pair to use for signing.
+	 * @param {string} issuerId - The issuer DID.
+	 * @returns {Promise<any>} The signed SkillClaimCredential.
+	 */
+	public async signSkillClaimVC(data: SkillClaimFormDataI, keyPair: KeyPair, issuerId: string): Promise<any> {
+		const credential = generateUnsignedSkillClaim({ formData: data, issuerDid: issuerId });
+		const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id });
+		return dbVc.issue({ credential, suite, documentLoader: customDocumentLoader });
+	}
+
+	/**
 	 * Verify a Verifiable Credential (VC)
 	 * @param {object} credential - The Verifiable Credential to verify.
 	 * @returns {Promise<boolean>} The verification result.
@@ -281,7 +295,7 @@ export class CredentialEngine {
 			});
 			console.log(JSON.stringify(result));
 
-			return result;
+			return result.verified;
 		} catch (error) {
 			console.error('Verification failed:', error);
 			throw error;
