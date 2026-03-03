@@ -330,7 +330,6 @@ export function generateUnsignedSkillClaim({
 		credentialSubject: {
 			type: ['SkillClaim'],
 			person: {
-				type: ['Person'],
 				id: formData.personId || issuerDid,
 				name: formData.personName,
 			},
@@ -343,12 +342,12 @@ export function generateUnsignedSkillClaim({
 				image: s.image,
 			})),
 		},
-		evidence: formData.evidence?.map((e) => ({
+		evidence: formData.evidence?.length ? formData.evidence.map((e) => ({
 			id: e.id,
 			type: e.type || 'Evidence',
 			name: e.name,
 			description: e.description,
-		})),
+		})) : [],
 	};
 
 	return unsignedCredential as unknown as IVerifiableCredential;
