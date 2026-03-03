@@ -9,16 +9,15 @@ import {
 	EmploymentFormDataI,
 	VolunteeringFormDataI,
 	PerformanceReviewFormDataI,
-	SkillClaimFormDataI,
-	SkillClaimCredential,
 } from '../../types';
+// @ts-ignore
+import type { ISkillClaimCredential } from 'hr-context';
 import { IVerifiableCredential } from '@digitalcredentials/ssi';
 import { v4 as uuidv4 } from 'uuid';
 import CryptoJS from 'crypto-js';
 import { employmentCredentialContext, volunteeringCredentialContext, performanceReviewCredentialContext } from './context.js';
 
 /**
- *
  * Utility function to generate a hashed ID for a credential.
  * Excludes the `id` field when hashing.
  * @param {object} credential - The credential object to hash.
@@ -315,10 +314,10 @@ export function generateUnsignedSkillClaim({
 	formData,
 	issuerDid,
 }: {
-	formData: SkillClaimFormDataI;
+	formData: ISkillClaimCredential;
 	issuerDid: string;
 }): IVerifiableCredential {
-	const unsignedCredential: SkillClaimCredential = {
+	const unsignedCredential: ISkillClaimCredential = {
 		'@context': [
 			'https://www.w3.org/ns/credentials/v2',
 			'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json',
@@ -331,6 +330,7 @@ export function generateUnsignedSkillClaim({
 		credentialSubject: {
 			type: ['SkillClaim'],
 			person: {
+				type: ['Person'],
 				id: formData.personId || issuerDid,
 				name: formData.personName,
 			},

@@ -12,7 +12,7 @@ interface PortfolioItem {
 
 import type { IAchievement, IOpenBadgeSubject } from '@digitalcredentials/ssi';
 
- export type Achievement = IAchievement;
+export type Achievement = IAchievement;
 export type OpenBadgeSubject = IOpenBadgeSubject;
 
 export interface KeyPair {
@@ -184,64 +184,11 @@ export interface PerformanceReviewFormDataI {
 
 /**
  * Evidence item for SkillClaimCredential (replaces portfolio/evidenceLink/evidenceDescription).
+ * hr-context does not define evidence; this matches standard VC evidence shape.
  */
 export interface EvidenceItem {
   id: string;
   type?: string;
   name: string;
   description?: string;
-}
-
-/**
- * Skill entry within a SkillClaimCredential.
- */
-export interface SkillItem {
-  name: string;
-  description?: string;
-  durationPerformed?: string;
-  narrative?: string;
-  image?: {
-    id: string;
-    type: string;
-  };
-}
-
-/**
- * Form data for the SkillClaimCredential (HR Context data model).
- */
-export interface SkillClaimFormDataI {
-  personName: string;
-  /** DID/URI for the credential subject. Falls back to issuer DID if omitted. */
-  personId?: string;
-  skills: SkillItem[];
-  evidence?: EvidenceItem[];
-}
-
-/**
- * SkillClaimCredential shape (HR Context / VC Data Model v2).
- */
-export interface SkillClaimCredential {
-  '@context': any[];
-  id: string;
-  type: ['VerifiableCredential', 'SkillClaimCredential', ...string[]];
-  issuer: string;
-  credentialSubject: {
-    type: ['SkillClaim', ...string[]];
-    person: {
-      id: string;
-      name: string;
-    };
-    skill: {
-      id: string;
-      name: string;
-      description?: string;
-      durationPerformed?: string;
-      narrative?: string;
-      image?: {
-        id: string;
-        type: string;
-      };
-    }[];
-  };
-  evidence?: EvidenceItem[];
 }

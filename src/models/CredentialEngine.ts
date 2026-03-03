@@ -13,7 +13,25 @@ import {
 	generateUnsignedVC,
 	generateUnsignedVolunteering,
 } from '../utils/credential.js';
-import { customDocumentLoader } from '../utils/customDocumentLoader.js';
+import { securityLoader } from '@digitalcredentials/security-document-loader';
+import hrContext from 'hr-context';
+
+// Add hr-context for SkillClaimCredential; patch socCode (@type→@container)
+const hrCtxData = JSON.parse(JSON.stringify(hrContext.CONTEXT_V1));
+if (hrCtxData?.['@context']?.socCode) {
+	delete hrCtxData['@context'].socCode['@type'];
+	hrCtxData['@context'].socCode['@container'] = '@set';
+}
+const loader = securityLoader();
+loader.addStatic(hrContext.CONTEXT_URL_V1, hrCtxData);
+loader.addStatic('https://w3id.org/hr/v1', hrCtxData);
+const builtLoader = loader.build();
+
+/** Document loader compatible with @digitalcredentials/vc */
+export const documentLoader = async (url: string) => {
+	const r = await builtLoader(url);
+	return { contextUrl: r.contextUrl ?? null, documentUrl: r.documentUrl ?? url, document: r.document };
+};
 import type { IVerifiableCredential } from '@digitalcredentials/ssi';
 import {
 	DidDocument,
@@ -23,8 +41,9 @@ import {
 	EmploymentFormDataI,
 	PerformanceReviewFormDataI,
 	VolunteeringFormDataI,
-	SkillClaimFormDataI,
 } from '../../types';
+// @ts-ignore
+import type { ISkillClaimCredential } from 'hr-context';
 import { saveToGoogleDrive } from '../utils/google.js';
 import { GoogleDriveStorage } from './GoogleDriveStorage.js';
 
@@ -246,7 +265,7 @@ export class CredentialEngine {
 		}
 
 		const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id });
-		return dbVc.issue({ credential, suite, documentLoader: customDocumentLoader });
+		return dbVc.issue({ credential, suite, documentLoader });
 	}
 	public async signEmploymentCredential(data: EmploymentFormDataI, keyPair: KeyPair, issuerId: string) {
 		return this.signVC({ data, type: 'EMPLOYMENT', keyPair, issuerId });
@@ -267,10 +286,10 @@ export class CredentialEngine {
 	 * @param {string} issuerId - The issuer DID.
 	 * @returns {Promise<any>} The signed SkillClaimCredential.
 	 */
-	public async signSkillClaimVC(data: SkillClaimFormDataI, keyPair: KeyPair, issuerId: string): Promise<any> {
+	public async signSkillClaimVC(data: ISkillClaimCredential, keyPair: KeyPair, issuerId: string): Promise<any> {
 		const credential = generateUnsignedSkillClaim({ formData: data, issuerDid: issuerId });
 		const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id });
-		return dbVc.issue({ credential, suite, documentLoader: customDocumentLoader });
+		return dbVc.issue({ credential, suite, documentLoader });
 	}
 
 	/**
@@ -291,7 +310,7 @@ export class CredentialEngine {
 			const result = await dbVc.verifyCredential({
 				credential,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 			});
 			console.log(JSON.stringify(result));
 
@@ -348,7 +367,7 @@ export class CredentialEngine {
 			const signedVP = await dbVc.signPresentation({
 				presentation,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 				challenge: '', // Provide the challenge if required
 			});
 
@@ -431,7 +450,7 @@ export class CredentialEngine {
 			const signedVC = await dbVc.issue({
 				credential: unsignedCredential,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 			});
 
 			const rootFolders = await this.storage.findFolders();

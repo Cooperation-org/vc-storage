@@ -1,5 +1,5 @@
 import { Ed25519Signature2020 } from '@digitalcredentials/ed25519-signature-2020';
-import { customDocumentLoader } from '../utils/customDocumentLoader.js';
+import { documentLoader } from './CredentialEngine.js';
 import { v4 as uuidv4 } from 'uuid';
 import * as dbVc from '@digitalcredentials/vc';
 import { Ed25519VerificationKey2020 } from '@digitalcredentials/ed25519-verification-key-2020';
@@ -23,7 +23,7 @@ export class ResumeVC {
 			const signedProfessionalSummaryVC = await dbVc.issue({
 				credential: professionalSummaryVC,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 			});
 
 			// Replace the unsigned professional summary with the signed one
@@ -33,7 +33,7 @@ export class ResumeVC {
 			const signedResumeVC = await dbVc.issue({
 				credential: unsignedCredential,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 			});
 
 			console.log('Signed Resume VC:', signedResumeVC);
