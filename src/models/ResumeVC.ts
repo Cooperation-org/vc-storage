@@ -228,7 +228,6 @@ export class ResumeVC {
 		const a = address || keyPair.publicKeyMultibase;
 		keyPair.controller = `did:key:${a}`;
 		keyPair.id = `${keyPair.controller}#${a}`;
-		keyPair.revoked = 'false';
 
 		// The `signer` is already provided by the `Ed25519VerificationKey2020` instance
 		return keyPair;
