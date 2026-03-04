@@ -346,7 +346,7 @@ export function generateUnsignedSkillClaim({
 			id: e.id,
 			type: e.type || 'Evidence',
 			name: e.name,
-			description: e.description,
+			description: e.description || "",
 		})) : [],
 	};
 
