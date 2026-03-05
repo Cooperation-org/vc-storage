@@ -1,8 +1,8 @@
-import { Ed25519Signature2020 } from '@digitalbazaar/ed25519-signature-2020';
-import { customDocumentLoader } from '../utils/digitalbazaar.js';
+import { Ed25519Signature2020 } from '@digitalcredentials/ed25519-signature-2020';
+import { documentLoader } from './CredentialEngine.js';
 import { v4 as uuidv4 } from 'uuid';
-import * as dbVc from '@digitalbazaar/vc';
-import { Ed25519VerificationKey2020 } from '@digitalbazaar/ed25519-verification-key-2020';
+import * as dbVc from '@digitalcredentials/vc';
+import { Ed25519VerificationKey2020 } from '@digitalcredentials/ed25519-verification-key-2020';
 import { generateDIDSchema } from '../utils/credential.js';
 import { inlineResumeContext } from '../utils/context.js';
 
@@ -23,7 +23,7 @@ export class ResumeVC {
 			const signedProfessionalSummaryVC = await dbVc.issue({
 				credential: professionalSummaryVC,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 			});
 
 			// Replace the unsigned professional summary with the signed one
@@ -33,7 +33,7 @@ export class ResumeVC {
 			const signedResumeVC = await dbVc.issue({
 				credential: unsignedCredential,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 			});
 
 			console.log('Signed Resume VC:', signedResumeVC);
@@ -228,7 +228,6 @@ export class ResumeVC {
 		const a = address || keyPair.publicKeyMultibase;
 		keyPair.controller = `did:key:${a}`;
 		keyPair.id = `${keyPair.controller}#${a}`;
-		keyPair.revoked = false;
 
 		// The `signer` is already provided by the `Ed25519VerificationKey2020` instance
 		return keyPair;

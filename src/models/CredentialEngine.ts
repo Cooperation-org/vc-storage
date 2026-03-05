@@ -1,6 +1,6 @@
-import { Ed25519VerificationKey2020 } from '@digitalbazaar/ed25519-verification-key-2020';
-import { Ed25519Signature2020 } from '@digitalbazaar/ed25519-signature-2020';
-import * as dbVc from '@digitalbazaar/vc';
+import { Ed25519VerificationKey2020 } from '@digitalcredentials/ed25519-verification-key-2020';
+import { Ed25519Signature2020 } from '@digitalcredentials/ed25519-signature-2020';
+import * as dbVc from '@digitalcredentials/vc';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -9,10 +9,29 @@ import {
 	generateUnsignedEmployment,
 	generateUnsignedPerformanceReview,
 	generateUnsignedRecommendation,
+	generateUnsignedSkillClaim,
 	generateUnsignedVC,
 	generateUnsignedVolunteering,
 } from '../utils/credential.js';
-import { customDocumentLoader } from '../utils/digitalbazaar.js';
+import { securityLoader } from '@digitalcredentials/security-document-loader';
+import hrContext from 'hr-context';
+
+// Add hr-context for SkillClaimCredential; patch socCode (@type→@container)
+const hrCtxData = JSON.parse(JSON.stringify(hrContext.CONTEXT_V1));
+if (hrCtxData?.['@context']?.socCode) {
+	delete hrCtxData['@context'].socCode['@type'];
+	hrCtxData['@context'].socCode['@container'] = '@set';
+}
+const loader = securityLoader();
+loader.addStatic(hrContext.CONTEXT_URL_V1, hrCtxData);
+loader.addStatic('https://w3id.org/hr/v1', hrCtxData);
+const builtLoader = loader.build();
+
+/** Document loader compatible with @digitalcredentials/vc */
+export const documentLoader = async (url: string) => {
+	const r = await builtLoader(url);
+	return { contextUrl: r.contextUrl ?? null, documentUrl: r.documentUrl ?? url, document: r.document };
+};
 import type { IVerifiableCredential } from '@digitalcredentials/ssi';
 import {
 	DidDocument,
@@ -23,9 +42,10 @@ import {
 	PerformanceReviewFormDataI,
 	VolunteeringFormDataI,
 } from '../../types';
+// @ts-ignore
+import type { ISkillClaimCredential } from 'hr-context';
 import { saveToGoogleDrive } from '../utils/google.js';
 import { GoogleDriveStorage } from './GoogleDriveStorage.js';
-import { decodeSeed, getDidFromEnvSeed } from '../utils/decodedSeed.js';
 
 interface SignPropsI {
 	data: FormDataI | RecommendationFormDataI | EmploymentFormDataI | VolunteeringFormDataI | PerformanceReviewFormDataI;
@@ -245,7 +265,7 @@ export class CredentialEngine {
 		}
 
 		const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id });
-		return dbVc.issue({ credential, suite, documentLoader: customDocumentLoader });
+		return dbVc.issue({ credential, suite, documentLoader });
 	}
 	public async signEmploymentCredential(data: EmploymentFormDataI, keyPair: KeyPair, issuerId: string) {
 		return this.signVC({ data, type: 'EMPLOYMENT', keyPair, issuerId });
@@ -257,6 +277,19 @@ export class CredentialEngine {
 
 	public async signPerformanceReviewCredential(data: PerformanceReviewFormDataI, keyPair: KeyPair, issuerId: string) {
 		return this.signVC({ data, type: 'PERFORMANCE_REVIEW', keyPair, issuerId });
+	}
+
+	/**
+	 * Sign a SkillClaimCredential using the HR Context data model.
+	 * @param {SkillClaimFormDataI} data - The skill claim form data.
+	 * @param {KeyPair} keyPair - The key pair to use for signing.
+	 * @param {string} issuerId - The issuer DID.
+	 * @returns {Promise<any>} The signed SkillClaimCredential.
+	 */
+	public async signSkillClaimVC(data: ISkillClaimCredential, keyPair: KeyPair, issuerId: string): Promise<any> {
+		const credential = generateUnsignedSkillClaim({ formData: data, issuerDid: issuerId });
+		const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id });
+		return dbVc.issue({ credential, suite, documentLoader });
 	}
 
 	/**
@@ -277,11 +310,11 @@ export class CredentialEngine {
 			const result = await dbVc.verifyCredential({
 				credential,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 			});
 			console.log(JSON.stringify(result));
 
-			return result;
+			return result.verified;
 		} catch (error) {
 			console.error('Verification failed:', error);
 			throw error;
@@ -334,7 +367,7 @@ export class CredentialEngine {
 			const signedVP = await dbVc.signPresentation({
 				presentation,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 				challenge: '', // Provide the challenge if required
 			});
 
@@ -417,7 +450,7 @@ export class CredentialEngine {
 			const signedVC = await dbVc.issue({
 				credential: unsignedCredential,
 				suite,
-				documentLoader: customDocumentLoader,
+				documentLoader,
 			});
 
 			const rootFolders = await this.storage.findFolders();

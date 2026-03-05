@@ -1,4 +1,4 @@
-import { Ed25519VerificationKey2020 } from '@digitalbazaar/ed25519-verification-key-2020';
+import { Ed25519VerificationKey2020 } from '@digitalcredentials/ed25519-verification-key-2020';
 
 const LOCAL_STORAGE_KEY = 'AppInstanceDID';
 
@@ -24,7 +24,6 @@ export async function getOrCreateAppInstanceDid(): Promise<{
 	const keyPair = await Ed25519VerificationKey2020.generate();
 	keyPair.controller = `did:key:${keyPair.publicKeyMultibase}`;
 	keyPair.id = `${keyPair.controller}#${keyPair.publicKeyMultibase}`;
-	keyPair.revoked = false;
 
 	const did = keyPair.controller;
 

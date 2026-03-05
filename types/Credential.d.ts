@@ -12,7 +12,7 @@ interface PortfolioItem {
 
 import type { IAchievement, IOpenBadgeSubject } from '@digitalcredentials/ssi';
 
- export type Achievement = IAchievement;
+export type Achievement = IAchievement;
 export type OpenBadgeSubject = IOpenBadgeSubject;
 
 export interface KeyPair {
@@ -180,4 +180,15 @@ export interface PerformanceReviewFormDataI {
   portfolio: PortfolioItem[];
   evidenceLink: string;
   evidenceDescription: string;
+}
+
+/**
+ * Evidence item for SkillClaimCredential (replaces portfolio/evidenceLink/evidenceDescription).
+ * hr-context does not define evidence; this matches standard VC evidence shape.
+ */
+export interface EvidenceItem {
+  id: string;
+  type?: string;
+  name: string;
+  description?: string;
 }
