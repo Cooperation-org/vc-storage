@@ -21,14 +21,8 @@ const formData = {
 	achievementDescription:
 		'how you earned this skill TEST how you earned this skill TEST how you earned this skill TEST how you earned this skill TEST ',
 	achievementName: 'Leadership',
-	portfolio: [
-		{ url: 'https://www.linkedin.com/in/dev-omar-salah', name: 'Evidence1 ' },
-		{
-			name: 'Days of Our Lives.webp',
-			url: 'https://drive.google.com/uc?export=view&id=18PX9sxkC6Di37LxhKYCmBXrMo48O94ds',
-		},
-	],
-	evidenceLink: 'https://drive.google.com/uc?export=view&id=18PX9sxkC6Di37LxhKYCmBXrMo48O94ds',
+	portfolio: [],
+	evidenceLink: '',
 	evidenceDescription: '',
 	credentialType: '',
 };
@@ -48,30 +42,58 @@ function formDataToSkillClaim(fd) {
 			image: fd.evidenceLink ? { id: fd.evidenceLink, type: 'Image' } : undefined,
 		},
 	];
+	console.log('🚀 ~ formDataToSkillClaim ~ skills:', skills);
 
 	const evidence = [
 		...(fd.portfolio?.filter((p) => p.name && p.url).map((p) => ({ id: p.url, name: p.name, description: fd.evidenceDescription || undefined })) ?? []),
 		...(fd.evidenceLink ? [{ id: fd.evidenceLink, name: fd.evidenceDescription || 'Evidence', description: fd.evidenceDescription || undefined }] : []),
 	];
-
+	console.log('🚀 ~ formDataToSkillClaim ~ evidence:', evidence);
 	return {
 		personName: fd.fullName,
 		skills,
 		evidence: evidence.length ? evidence : undefined,
 	};
 }
+/**
+ * FORM DATA as input
+ * Form ~ data:
 
+    credentialDescription: "TESTING DESC"
+
+    credentialDuration: "44 years"
+
+    credentialName: "Customer Service"
+
+    description: "TESTING HOW U EARND"
+
+    evidenceLink: ""
+
+    fullName: "Omar Salah"
+
+    persons: ""
+
+    portfolio: [] (0)
+
+    storageOption: "Google Drive"
+ */
 async function main() {
 	const { didDocument, keyPair } = await engine.createDID();
 	console.log('DID:', didDocument.id);
 
 	const skillClaimData = formDataToSkillClaim(formData);
 	skillClaimData.personId = didDocument.id;
+	console.log('🚀 ~ main ~ skillClaimData:', skillClaimData);
+	try { 
+		const signedVC = await engine.signSkillClaimVC(skillClaimData, keyPair, didDocument.id); 
+		console.log('\n========== Signed SkillClaimCredential ==========\n');
+		console.log(JSON.stringify(signedVC, null, 2));
+	}
+	
+	catch (error) {
+		console.error('🚀 ~ main ~ error:', JSON.stringify(error, null, 2));
+	}
 
-	const signedVC = await engine.signSkillClaimVC(skillClaimData, keyPair, didDocument.id);
-
-	console.log('\n========== Signed SkillClaimCredential ==========\n');
-	console.log(JSON.stringify(signedVC, null, 2));
 }
 
 main().catch((e) => {

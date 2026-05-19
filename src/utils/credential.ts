@@ -6,6 +6,7 @@ import {
 	RecommendationCredential,
 	Credential,
 	RecommendationFormDataI,
+	EvidenceItem,
 	EmploymentFormDataI,
 	VolunteeringFormDataI,
 	PerformanceReviewFormDataI,
@@ -15,7 +16,12 @@ import type { ISkillClaimCredential } from 'hr-context';
 import { IVerifiableCredential } from '@digitalcredentials/ssi';
 import { v4 as uuidv4 } from 'uuid';
 import CryptoJS from 'crypto-js';
-import { employmentCredentialContext, volunteeringCredentialContext, performanceReviewCredentialContext } from './context.js';
+import {
+	employmentCredentialContext,
+	volunteeringCredentialContext,
+	performanceReviewCredentialContext,
+	recommendationCredentialContext,
+} from './context.js';
 
 /**
  * Utility function to generate a hashed ID for a credential.
@@ -141,65 +147,56 @@ export function generateUnsignedVC({ formData, issuerDid }: { formData: FormData
   return unsignedCredential as IVerifiableCredential;
 }
 /**
- * Generate an unsigned Recommendation Credential.
- * Uses the hash of the VC to set the `id` for consistency.
- * @param {object} params
- * @param {IVerifiableCredential} params.vc - The Verifiable Credential to base the recommendation on.
- * @param {RecommendationFormDataI} params.recommendation - The recommendation form data.
- * @param {string} params.issuerDid - The DID of the issuer.
- * @returns {IVerifiableCredential} The created unsigned Recommendation Credential.
- * @throws Will throw an error if the recommendation creation fails or if issuance date exceeds expiration date.
+ * Generate an unsigned Recommendation Credential (VC Data Model v2).
+ * Uses the target skill-claim VC id on credentialSubject.id.
  */
 export function generateUnsignedRecommendation({
 	vcId,
 	recommendation,
 	issuerDid,
+	evidence = [],
 }: {
 	vcId: string;
 	recommendation: RecommendationFormDataI;
 	issuerDid: string;
+	evidence?: EvidenceItem[];
 }): IVerifiableCredential {
-	const issuanceDate = new Date().toISOString();
-	if (issuanceDate > recommendation.expirationDate) throw new Error('issuanceDate cannot be after expirationDate');
-
 	const unsignedRecommendation: RecommendationCredential = {
 		'@context': [
-			'https://www.w3.org/2018/credentials/v1',
+			'https://www.w3.org/ns/credentials/v2',
 			'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json',
-			{
-				howKnow: 'https://schema.org/howKnow',
-				recommendationText: 'https://schema.org/recommendationText',
-				qualifications: 'https://schema.org/qualifications',
-				explainAnswer: 'https://schema.org/explainAnswer',
-				portfolio: 'https://schema.org/portfolio',
-			},
+			'https://w3id.org/hr/v1',
+			recommendationCredentialContext,
+			'https://w3id.org/security/suites/ed25519-2020/v1',
 		],
-		id: ``,
+		id: `urn:uuid:${uuidv4()}`,
 		type: ['VerifiableCredential', 'https://schema.org/RecommendationCredential'],
-		issuer: {
-			id: issuerDid,
-			type: ['Profile'],
-		},
-		issuanceDate,
-		expirationDate: recommendation.expirationDate,
+		issuer: { id: issuerDid, type: ['Profile'] },
+		validFrom: new Date().toISOString(),
 		credentialSubject: {
 			id: vcId,
 			name: recommendation.fullName,
+			...(recommendation.recipientName ? { recipientName: recommendation.recipientName } : {}),
 			howKnow: recommendation.howKnow,
 			recommendationText: recommendation.recommendationText,
-			qualifications: recommendation.qualifications,
-			explainAnswer: recommendation.explainAnswer,
-			portfolio: recommendation.portfolio.map((item) => ({
-				name: item.name,
-				url: item.url,
-			})),
+			...(recommendation.qualifications ? { qualifications: recommendation.qualifications } : {}),
+			...(recommendation.explainAnswer ? { explainAnswer: recommendation.explainAnswer } : {}),
+			...(recommendation.portfolio?.length ? { portfolio: recommendation.portfolio } : {}),
+			...(recommendation.skillsEndorsed?.length ? { skillsEndorsed: recommendation.skillsEndorsed } : {}),
 		},
+		...(evidence.length
+			? {
+					evidence: evidence.map((e) => ({
+						id: e.id,
+						type: Array.isArray(e.type) ? e.type[0] : e.type || 'Evidence',
+						name: e.name,
+						description: e.description || '',
+					})),
+			  }
+			: {}),
 	};
 
-	// Generate the hashed ID
-	unsignedRecommendation.id = 'urn:' + generateHashedId(unsignedRecommendation);
-
-  return unsignedRecommendation as IVerifiableCredential;
+	return unsignedRecommendation as IVerifiableCredential;
 }
 
 /**
