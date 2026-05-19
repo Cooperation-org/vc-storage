@@ -79,19 +79,35 @@ export interface Credential {
 	};
 }
 
+export interface SkillEndorsed {
+	name: string;
+	id?: string;
+	frameworkMatch?: Array<{
+		socCode?: string;
+		similarityScore?: number;
+		name?: string;
+		framework?: string;
+	}>;
+}
+
 export interface RecommendationFormDataI {
-	recommendationText: string;
-	qualifications: string;
-	expirationDate: string;
 	fullName: string;
 	howKnow: string;
-	explainAnswer: string;
-	portfolio: { name: string; url: string }[];
+	recommendationText: string;
+	qualifications?: string;
+	explainAnswer?: string;
+	portfolio?: PortfolioItem[];
+	recipientName?: string;
+	skillsEndorsed?: SkillEndorsed[];
+	/** @deprecated v2 recommendations do not use expirationDate */
+	expirationDate?: string;
 	/**
 	 * Optional DID/URI for the recommendation subject (holder).
 	 * If omitted, generators may default to the issuer DID.
 	 */
 	subjectId?: string;
+	/** Root-level evidence (passed through signVC data when signing). */
+	evidence?: EvidenceItem[];
 }
 
 export interface RecommendationCredential {
@@ -102,18 +118,21 @@ export interface RecommendationCredential {
 		id: string;
 		type: string[];
 	};
-	issuanceDate: string;
-	expirationDate: string;
+	/** VC Data Model v2 issuance timestamp. */
+	validFrom?: string;
 	credentialSubject: {
 		/** DID/URI (VC `id`) this recommendation is for (e.g., a Skill VC id). */
 		id: string;
 		name: string;
+		recipientName?: string;
 		howKnow: string;
 		recommendationText: string;
-		qualifications: string;
-		explainAnswer: string;
-		portfolio: PortfolioItem[];
+		qualifications?: string;
+		explainAnswer?: string;
+		portfolio?: PortfolioItem[];
+		skillsEndorsed?: SkillEndorsed[];
 	};
+	evidence?: EvidenceItem[];
 }
 
 export interface Proof {

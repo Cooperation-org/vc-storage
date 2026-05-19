@@ -58,17 +58,16 @@ async function main() {
 	console.log('Saved Skill VC file:', savedSkill.id);
 	console.log('Skill VC id (credential id):', signedSkillVc.id);
 
-	// 3) Create Recommendation VC about the skill VC id
+	// 3) Create Recommendation VC about the skill VC id (v2 — no expirationDate)
 	const recommendationFormData = {
-		expirationDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
 		fullName: 'Omar',
+		recipientName: 'Skill VC Test Recipient',
 		howKnow: 'Worked together on multiple projects.',
 		recommendationText: 'Omar has consistently demonstrated strong skills and great ownership.',
 		portfolio: [{ name: 'Project', url: 'https://example.com/project' }],
 		qualifications: 'Relevant experience in the domain.',
 		explainAnswer: 'Strong execution, clear communication, reliable delivery.',
-		// New optional field (so recommendation has credentialSubject.id)
-		subjectId: didDocument.id,
+		skillsEndorsed: [{ name: 'Skill VC Test', id: 'urn:uuid:test-skill' }],
 	};
 
 	const signedRecommendationVc = await engine.signVC({

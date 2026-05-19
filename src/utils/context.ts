@@ -185,6 +185,19 @@ export const volunteeringCredentialContext = {
   }
 };
 
+/** JSON-LD terms for RecommendationCredential (schema.org + VC v2). */
+export const recommendationCredentialContext = {
+	'@context': {
+		recipientName: 'https://schema.org/name',
+		howKnow: 'https://schema.org/howKnow',
+		recommendationText: 'https://schema.org/recommendationText',
+		qualifications: 'https://schema.org/qualifications',
+		explainAnswer: 'https://schema.org/explainAnswer',
+		portfolio: 'https://schema.org/portfolio',
+		skillsEndorsed: 'https://schema.org/skillsEndorsed',
+	},
+};
+
 // 3. Performance Review Credential Context
 export const performanceReviewCredentialContext = {
   '@context': {
