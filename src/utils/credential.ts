@@ -337,6 +337,8 @@ export function generateUnsignedSkillClaim({
 				durationPerformed: s.durationPerformed,
 				narrative: s.narrative,
 				image: s.image,
+				source: s.source,
+				frameworkMatch: s.frameworkMatch,
 			})),
 		},
 		evidence: formData.evidence?.length ? formData.evidence.map((e) => ({
