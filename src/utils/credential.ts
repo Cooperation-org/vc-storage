@@ -10,9 +10,8 @@ import {
 	EmploymentFormDataI,
 	VolunteeringFormDataI,
 	PerformanceReviewFormDataI,
+	SkillClaimFormDataI,
 } from '../../types';
-// @ts-ignore
-import type { ISkillClaimCredential } from 'hr-context';
 import { IVerifiableCredential } from '@digitalcredentials/ssi';
 import { v4 as uuidv4 } from 'uuid';
 import CryptoJS from 'crypto-js';
@@ -303,6 +302,9 @@ export function generateUnsignedPerformanceReview({ formData, issuerDid }: { for
  * - Uses `https://www.w3.org/ns/credentials/v2` and `https://w3id.org/hr/v1` contexts
  * - VC subtype is `SkillClaimCredential` (not `OpenBadgeCredential`)
  * - `credentialSubject.type` is `SkillClaim` with a `person` object and `skill` array
+ * - User-entered skills go in `credentialSubject.skill`; LLM-extracted skills go in
+ *   `credentialSubject.inferredSkill` with `source`/`model` provenance and
+ *   `frameworkMatch` alignments
  * - Evidence lives at the credential root (not inside `credentialSubject`)
  * - No `issuanceDate`/`expirationDate` set by the author
  * - Issuer is a plain DID string (no `type` wrapper)
@@ -311,10 +313,10 @@ export function generateUnsignedSkillClaim({
 	formData,
 	issuerDid,
 }: {
-	formData: ISkillClaimCredential;
+	formData: SkillClaimFormDataI;
 	issuerDid: string;
 }): IVerifiableCredential {
-	const unsignedCredential: ISkillClaimCredential = {
+	const unsignedCredential = {
 		'@context': [
 			'https://www.w3.org/ns/credentials/v2',
 			'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json',
@@ -335,11 +337,20 @@ export function generateUnsignedSkillClaim({
 				name: s.name,
 				description: s.description,
 				durationPerformed: s.durationPerformed,
-				narrative: s.narrative,
 				image: s.image,
 				source: s.source,
-				frameworkMatch: s.frameworkMatch,
 			})),
+			...(formData.inferredSkills?.length
+				? {
+						inferredSkill: formData.inferredSkills.map((s) => ({
+							id: `urn:uuid:${uuidv4()}`,
+							name: s.name,
+							source: s.source,
+							model: s.model,
+							frameworkMatch: s.frameworkMatch,
+						})),
+					}
+				: {}),
 		},
 		evidence: formData.evidence?.length ? formData.evidence.map((e) => ({
 			id: e.id,

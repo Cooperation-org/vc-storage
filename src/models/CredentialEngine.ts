@@ -16,15 +16,11 @@ import {
 import { securityLoader } from '@digitalcredentials/security-document-loader';
 import hrContext from 'hr-context';
 
-// Add hr-context for SkillClaimCredential; patch socCode (@type→@container)
-const hrCtxData = JSON.parse(JSON.stringify(hrContext.CONTEXT_V1));
-if (hrCtxData?.['@context']?.socCode) {
-	delete hrCtxData['@context'].socCode['@type'];
-	hrCtxData['@context'].socCode['@container'] = '@set';
-}
+// Add hr-context for SkillClaimCredential (defines socCode, inferredSkill,
+// model, source, frameworkMatch as of hr-context@0.2.0).
 const loader = securityLoader();
-loader.addStatic(hrContext.CONTEXT_URL_V1, hrCtxData);
-loader.addStatic('https://w3id.org/hr/v1', hrCtxData);
+loader.addStatic(hrContext.CONTEXT_URL_V1, hrContext.CONTEXT_V1);
+loader.addStatic('https://w3id.org/hr/v1', hrContext.CONTEXT_V1);
 const builtLoader = loader.build();
 
 /** Document loader compatible with @digitalcredentials/vc */
@@ -41,9 +37,8 @@ import {
 	EmploymentFormDataI,
 	PerformanceReviewFormDataI,
 	VolunteeringFormDataI,
+	SkillClaimFormDataI,
 } from '../../types';
-// @ts-ignore
-import type { ISkillClaimCredential } from 'hr-context';
 import { saveToGoogleDrive } from '../utils/google.js';
 import { GoogleDriveStorage } from './GoogleDriveStorage.js';
 
@@ -286,7 +281,7 @@ export class CredentialEngine {
 	 * @param {string} issuerId - The issuer DID.
 	 * @returns {Promise<any>} The signed SkillClaimCredential.
 	 */
-	public async signSkillClaimVC(data: ISkillClaimCredential, keyPair: KeyPair, issuerId: string): Promise<any> {
+	public async signSkillClaimVC(data: SkillClaimFormDataI, keyPair: KeyPair, issuerId: string): Promise<any> {
 		const credential = generateUnsignedSkillClaim({ formData: data, issuerDid: issuerId });
 		const suite = new Ed25519Signature2020({ key: keyPair, verificationMethod: keyPair.id });
 		return dbVc.issue({ credential, suite, documentLoader });

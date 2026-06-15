@@ -38,11 +38,27 @@ function formDataToSkillClaim(fd) {
 			name: fd.achievementName,
 			description: fd.criteriaNarrative,
 			durationPerformed: fd.duration,
-			narrative: fd.achievementDescription,
 			image: fd.evidenceLink ? { id: fd.evidenceLink, type: 'Image' } : undefined,
 		},
 	];
 	console.log('🚀 ~ formDataToSkillClaim ~ skills:', skills);
+
+	// LLM-extracted skills (grouped separately from user-entered skills)
+	const inferredSkills = [
+		{
+			name: 'Barista',
+			source: 'ollama',
+			model: 'qwen2.5:7b',
+			frameworkMatch: [
+				{
+					framework: 'O*Net',
+					socCode: ['35-3023.00', '35-3023.01', '35-3031.00'],
+					name: 'Fast Food and Counter Workers',
+					similarityScore: 0.87,
+				},
+			],
+		},
+	];
 
 	const evidence = [
 		...(fd.portfolio?.filter((p) => p.name && p.url).map((p) => ({ id: p.url, name: p.name, description: fd.evidenceDescription || undefined })) ?? []),
@@ -52,6 +68,7 @@ function formDataToSkillClaim(fd) {
 	return {
 		personName: fd.fullName,
 		skills,
+		inferredSkills,
 		evidence: evidence.length ? evidence : undefined,
 	};
 }
