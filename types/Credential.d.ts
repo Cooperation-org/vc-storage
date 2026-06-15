@@ -83,7 +83,7 @@ export interface SkillEndorsed {
 	name: string;
 	id?: string;
 	frameworkMatch?: Array<{
-		socCode?: string;
+		socCode?: string[];
 		similarityScore?: number;
 		name?: string;
 		framework?: string;
@@ -210,4 +210,56 @@ export interface EvidenceItem {
   type?: string;
   name: string;
   description?: string;
+}
+
+/**
+ * Framework alignment for a skill (e.g. O*NET SOC code matches).
+ * `socCode` holds multiple matches per skill (pipeline keeps the top matches).
+ */
+export interface FrameworkMatchItem {
+  id?: string;
+  framework?: string;
+  socCode?: string[];
+  name?: string;
+  similarityScore?: number;
+}
+
+/**
+ * User-entered skill within a SkillClaimCredential.
+ */
+export interface SkillItem {
+  name: string;
+  description?: string;
+  durationPerformed?: string;
+  image?: {
+    id: string;
+    type: string;
+  };
+  /** 'user' when the skill was manually entered via the UI. */
+  source?: string;
+}
+
+/**
+ * Skill inferred by an extraction pipeline (e.g. an LLM), kept separate from
+ * user-entered skills. Emitted as `credentialSubject.inferredSkill`.
+ */
+export interface InferredSkillItem {
+  name: string;
+  /** Extraction source, e.g. 'ollama'. */
+  source: string;
+  /** LLM model used for inference, e.g. 'qwen2.5:7b'. */
+  model?: string;
+  frameworkMatch?: FrameworkMatchItem[];
+}
+
+/**
+ * Form data for the SkillClaimCredential (HR Context data model).
+ */
+export interface SkillClaimFormDataI {
+  personName: string;
+  /** DID/URI for the credential subject. Falls back to issuer DID if omitted. */
+  personId?: string;
+  skills: SkillItem[];
+  inferredSkills?: InferredSkillItem[];
+  evidence?: EvidenceItem[];
 }
