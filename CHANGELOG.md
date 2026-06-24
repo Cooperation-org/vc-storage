@@ -1,6 +1,6 @@
 # @cooperation/vc-storage ChangeLog
 
-## 1.0.47 - TBD
+## 1.0.48-1.0.49 - 2026-06-24
 
 ### Changed (SkillClaimCredential data model cleanup)
 
