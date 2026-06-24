@@ -11,6 +11,7 @@
 	],
 	"scripts": {
 		"build": "tsc",
+		"prepublishOnly": "yarn build",
 		"test": "vitest",
 		"test:all-vcs": "npm run build && node src/scripts/testAllVcs.js",
 		"version": "npm version patch"
